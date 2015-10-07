@@ -108,6 +108,8 @@ type Board struct {
 	State GameState
 	// Stores whether food was eaten on the last movement.
 	AteFood bool
+
+	History []Board
 }
 
 func NewBoard(width int, height int) *Board {
@@ -135,12 +137,17 @@ func (board *Board) Initialize() {
 	board.Rotations = make([]RotationPoint, 0)
 
 	board.State = Playing
+
+	board.History = make([]Board, 0)
 }
 
 func (board *Board) Move(rotation Rotation) {
 	if board.State != Playing {
 		return
 	}
+
+	// Store this move in the history.
+	board.saveState()
 
 	if rotation != Forward {
 		board.SnakeHead.Heading.rotate(rotation)
@@ -150,6 +157,7 @@ func (board *Board) Move(rotation Rotation) {
 	board.SnakeHead.move()
 	if !board.isValid() {
 		board.State = GameOver
+		board.restoreState()
 		return
 	}
 	if board.SnakeHead.Point == board.Food.Point {
@@ -178,6 +186,8 @@ func (board *Board) Move(rotation Rotation) {
 		}
 
 		board.SnakeTail.move()
+	} else {
+		board.placeFood()
 	}
 
 	board.AteFood = false
@@ -245,4 +255,18 @@ func (board *Board) isValid() bool {
 		}
 	}
 	return false
+}
+
+func (board *Board) saveState() {
+	history := board.History
+	board.History = nil
+	history = append(history, Board(*board))
+	board.History = history
+}
+
+func (board *Board) restoreState() {
+	history := board.History
+	previousBoard, history := history[len(history)-1], history[:len(history)-1]
+	*board = previousBoard
+	board.History = history
 }

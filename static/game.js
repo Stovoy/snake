@@ -13,6 +13,15 @@ document.onreadystatechange = function () {
     var SQUARE_HEIGHT = 4;
     var SQUARE_HORIZONTAL_GAP = 2;
     var SQUARE_VERTICAL_GAP = 2;
+    var PADDING = 2;
+
+    function square(x, y, color) {
+        context.fillStyle = color;
+        context.fillRect(
+            x * SQUARE_WIDTH + x * SQUARE_HORIZONTAL_GAP + PADDING,
+            y * SQUARE_HEIGHT + y * SQUARE_VERTICAL_GAP + PADDING,
+            SQUARE_WIDTH, SQUARE_HEIGHT);
+    }
 
     function snake(x, y) {
         square(x, y, 'orange');
@@ -26,34 +35,11 @@ document.onreadystatechange = function () {
         square(x, y, 'grey');
     }
 
-    function square(x, y, color) {
-        x++;
-        y++;
+    function border(width, height) {
         context.beginPath();
-        // Top left
-        context.moveTo(
-            x * SQUARE_WIDTH + x * SQUARE_HORIZONTAL_GAP,
-            y * SQUARE_HEIGHT + y * SQUARE_VERTICAL_GAP);
-        // Top right
-        context.lineTo(
-            x * SQUARE_WIDTH + x * SQUARE_HORIZONTAL_GAP + SQUARE_WIDTH,
-            y * SQUARE_HEIGHT + y * SQUARE_VERTICAL_GAP);
-        // Bottom right
-        context.lineTo(
-            x * SQUARE_WIDTH + x * SQUARE_HORIZONTAL_GAP + SQUARE_WIDTH,
-            y * SQUARE_HEIGHT + y * SQUARE_VERTICAL_GAP + SQUARE_HEIGHT);
-        // Bottom left
-        context.lineTo(
-            x * SQUARE_WIDTH + x * SQUARE_HORIZONTAL_GAP,
-            y * SQUARE_HEIGHT + y * SQUARE_VERTICAL_GAP + SQUARE_HEIGHT);
-        // Back to the top left
-        context.lineTo(
-            x * SQUARE_WIDTH + x * SQUARE_HORIZONTAL_GAP,
-            y * SQUARE_HEIGHT + y * SQUARE_VERTICAL_GAP);
-
+        context.rect(0, 0, width, height);
         context.strokeStyle = 'black';
-        context.fillStyle = color;
-        context.fill();
+        context.stroke();
     }
 
     function draw(board) {
@@ -66,14 +52,33 @@ document.onreadystatechange = function () {
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.restore();
 
+        border(
+            board.Width * (SQUARE_WIDTH + SQUARE_HORIZONTAL_GAP) + SQUARE_WIDTH,
+            board.Height * (SQUARE_HEIGHT + SQUARE_VERTICAL_GAP) + SQUARE_HEIGHT);
+
         food(board.Food.X, board.Food.Y);
         snake(board.SnakeHead.X, board.SnakeHead.Y);
         snake(board.SnakeTail.X, board.SnakeTail.Y);
-        for (var i = 0; i < board.Empty.length; i++) {
-            var emptyPoint = board.Empty[i];
-            //empty(emptyPoint.X, emptyPoint.Y);
-            console.log(emptyPoint.X, emptyPoint.Y);
+
+        for (var x = 0; x < board.Width; x++) {
+            for (var y = 0; y < board.Height; y++) {
+                if (x == board.Food.X && y == board.Food.Y) {
+                    continue;
+                }
+                var found = false;
+                for (var i = 0; i < board.Empty.length; i++) {
+                    var emptyPoint = board.Empty[i];
+                    if (x == emptyPoint.X && y == emptyPoint.Y) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    snake(x, y);
+                }
+            }
         }
+
     }
 
     function httpGet(url, callback) {
@@ -115,4 +120,6 @@ document.onreadystatechange = function () {
             draw(JSON.parse(text));
         });
     };
+
+    reset.onclick();
 };
