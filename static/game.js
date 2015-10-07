@@ -34,7 +34,7 @@ document.onreadystatechange = function () {
     function connect(x1, y1, x2, y2, color) {
         context.fillStyle = color;
         var lower;
-        if (Math.abs(x1 - x2) == 1) {
+        if (Math.abs(x1 - x2) === 1) {
             if (y1 != y2) {
                 return;
             }
@@ -43,7 +43,7 @@ document.onreadystatechange = function () {
                 lower * SQUARE_WIDTH + lower * SQUARE_HORIZONTAL_GAP + PADDING + SQUARE_WIDTH,
                 y1 * SQUARE_HEIGHT + y1 * SQUARE_VERTICAL_GAP + PADDING,
                 SQUARE_HORIZONTAL_GAP, SQUARE_HEIGHT);
-        } else if (Math.abs(y1 - y2) == 1) {
+        } else if (Math.abs(y1 - y2) === 1) {
             if (x1 != x2) {
                 return;
             }
@@ -109,7 +109,7 @@ document.onreadystatechange = function () {
     function httpGet(url, callback) {
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
                 callback(xmlHttp.responseText);
             }
         };
@@ -117,35 +117,58 @@ document.onreadystatechange = function () {
         xmlHttp.send(null);
     }
 
-    var left = document.getElementById('left');
-    var right = document.getElementById('right');
-    var forward = document.getElementById('forward');
-    var reset = document.getElementById('reset');
-    var rewind = document.getElementById('rewind');
-
     function drawCallback(text) {
         draw(JSON.parse(text));
     }
 
-    left.onclick = function() {
+    function left() {
         httpGet('snake/move/left', drawCallback);
-    };
+    }
 
-    right.onclick = function() {
+    function right() {
         httpGet('snake/move/right', drawCallback);
-    };
+    }
 
-    forward.onclick = function() {
+    function forward() {
         httpGet('snake/move/forward', drawCallback);
-    };
+    }
 
-    reset.onclick = function() {
+    function reset() {
         httpGet('snake/reset', drawCallback);
-    };
+    }
 
-    rewind.onclick = function() {
+    function rewind() {
         httpGet('snake/rewind', drawCallback);
-    };
+    }
 
-    reset.onclick();
+    var leftButton = document.getElementById('left');
+    var rightButton = document.getElementById('right');
+    var forwardButton = document.getElementById('forward');
+    var resetButton = document.getElementById('reset');
+    var rewindButton = document.getElementById('rewind');
+
+    leftButton.onclick = left;
+    rightButton.onclick = right;
+    forwardButton.onclick = forward;
+    resetButton.onclick = reset;
+    rewindButton.onclick = rewind;
+
+    reset();
+
+    document.onkeypress = function (e) {
+        e = e || window.event;
+        if (e.keyCode === 119) {
+            // w
+            forward();
+        } else if (e.keyCode == 97) {
+            // a
+            left();
+        } else if (e.keyCode == 100) {
+            // d
+            right();
+        } else if (e.keyCode == 114) {
+            // r
+            rewind();
+        }
+    };
 };

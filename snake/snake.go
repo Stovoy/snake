@@ -95,9 +95,9 @@ type Board struct {
 
 	State GameState
 	// Stores whether food was eaten on the last movement.
-	AteFood bool
+	AteFood bool `json:"-"`
 
-	History []Board
+	History []Board `json:"-"`
 }
 
 func NewBoard(width int, height int) *Board {
@@ -120,7 +120,7 @@ func (board *Board) Initialize() {
 }
 
 func (board *Board) Move(rotation Rotation) {
-	if board.State != Playing {
+	if board.State == GameWon {
 		return
 	}
 
@@ -154,7 +154,9 @@ func (board *Board) Move(rotation Rotation) {
 		}
 	} else {
 		board.SnakeBody = append(board.SnakeBody, oldHeadPosition)
-		board.placeFood()
+		if board.State != GameWon {
+			board.placeFood()
+		}
 	}
 
 	board.AteFood = false

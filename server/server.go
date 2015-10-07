@@ -9,44 +9,47 @@ import (
 )
 
 type Handler func(w http.ResponseWriter, r *http.Request)
+type Modifier func()
 
 func Game(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "static/game.html")
 }
 
-func MoveLeft(board *snake.Board) Handler {
+func ModifyAndWrite(board *snake.Board, modifier Modifier) Handler {
 	return func(w http.ResponseWriter, r *http.Request) {
-		board.Move(snake.Left)
+		modifier()
 		WriteBoard(w, board)
 	}
+}
+
+func MoveLeft(board *snake.Board) Handler {
+	return ModifyAndWrite(board, func() {
+		board.Move(snake.Left)
+	})
 }
 
 func MoveRight(board *snake.Board) Handler {
-	return func(w http.ResponseWriter, r *http.Request) {
+	return ModifyAndWrite(board, func() {
 		board.Move(snake.Right)
-		WriteBoard(w, board)
-	}
+	})
 }
 
 func MoveForward(board *snake.Board) Handler {
-	return func(w http.ResponseWriter, r *http.Request) {
+	return ModifyAndWrite(board, func() {
 		board.Move(snake.Forward)
-		WriteBoard(w, board)
-	}
+	})
 }
 
 func Reset(board *snake.Board) Handler {
-	return func(w http.ResponseWriter, r *http.Request) {
+	return ModifyAndWrite(board, func() {
 		board.Initialize()
-		WriteBoard(w, board)
-	}
+	})
 }
 
 func Rewind(board *snake.Board) Handler {
-	return func(w http.ResponseWriter, r *http.Request) {
+	return ModifyAndWrite(board, func() {
 		board.Rewind()
-		WriteBoard(w, board)
-	}
+	})
 }
 
 func WriteBoard(w http.ResponseWriter, board *snake.Board) {

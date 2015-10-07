@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	board := snake.NewBoard(50, 50)
+	board := snake.NewBoard(8, 8)
 
 	server.Start(board)
 }
