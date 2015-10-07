@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"snake/snake"
 	"encoding/json"
+	"snake/snake"
 )
 
 type Handler func(w http.ResponseWriter, r *http.Request)
@@ -42,6 +42,13 @@ func Reset(board *snake.Board) Handler {
 	}
 }
 
+func Rewind(board *snake.Board) Handler {
+	return func(w http.ResponseWriter, r *http.Request) {
+		board.Rewind()
+		WriteBoard(w, board)
+	}
+}
+
 func WriteBoard(w http.ResponseWriter, board *snake.Board) {
 	data, err := json.Marshal(board)
 	if err != nil {
@@ -61,6 +68,7 @@ func Start(board *snake.Board) {
 	http.HandleFunc("/snake/move/right", MoveRight(board))
 	http.HandleFunc("/snake/move/forward", MoveForward(board))
 	http.HandleFunc("/snake/reset", Reset(board))
+	http.HandleFunc("/snake/rewind", Rewind(board))
 
 	err := http.ListenAndServe(":8000", nil)
 	fmt.Println(err)

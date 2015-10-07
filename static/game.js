@@ -23,16 +23,56 @@ document.onreadystatechange = function () {
             SQUARE_WIDTH, SQUARE_HEIGHT);
     }
 
-    function snake(x, y) {
-        square(x, y, 'orange');
+    /**
+     * Connect two adjacent squares.
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @param color
+     */
+    function connect(x1, y1, x2, y2, color) {
+        context.fillStyle = color;
+        var lower;
+        if (Math.abs(x1 - x2) == 1) {
+            if (y1 != y2) {
+                return;
+            }
+            lower = Math.min(x1, x2);
+            context.fillRect(
+                lower * SQUARE_WIDTH + lower * SQUARE_HORIZONTAL_GAP + PADDING + SQUARE_WIDTH,
+                y1 * SQUARE_HEIGHT + y1 * SQUARE_VERTICAL_GAP + PADDING,
+                SQUARE_HORIZONTAL_GAP, SQUARE_HEIGHT);
+        } else if (Math.abs(y1 - y2) == 1) {
+            if (x1 != x2) {
+                return;
+            }
+            lower = Math.min(y1, y2);
+            context.fillRect(
+                x1 * SQUARE_WIDTH + x1 * SQUARE_HORIZONTAL_GAP + PADDING,
+                lower * SQUARE_HEIGHT + lower * SQUARE_VERTICAL_GAP + PADDING + SQUARE_HEIGHT,
+                SQUARE_WIDTH, SQUARE_VERTICAL_GAP);
+        }
+    }
+
+    /**
+     * List of snake positions, in order. Must be connected.
+     * @param positions
+     */
+    function snake(positions) {
+        var previous = null;
+        for (var i = 0; i < positions.length; i++) {
+            var position = positions[i];
+            square(position.x, position.y, 'orange');
+            if (previous !== null) {
+                connect(previous.x, previous.y, position.x, position.y, 'orange');
+            }
+            previous = position;
+        }
     }
 
     function food(x, y) {
         square(x, y, 'red');
-    }
-
-    function empty(x, y) {
-        square(x, y, 'grey');
     }
 
     function border(width, height) {
@@ -44,7 +84,6 @@ document.onreadystatechange = function () {
 
     function draw(board) {
         // board is a json structure.
-        console.log(board);
 
         // Clear the canvas.
         context.save();
@@ -57,28 +96,14 @@ document.onreadystatechange = function () {
             board.Height * (SQUARE_HEIGHT + SQUARE_VERTICAL_GAP) + SQUARE_HEIGHT);
 
         food(board.Food.X, board.Food.Y);
-        snake(board.SnakeHead.X, board.SnakeHead.Y);
-        snake(board.SnakeTail.X, board.SnakeTail.Y);
+        var snakeList = [{x: board.SnakeHead.X, y: board.SnakeHead.Y}];
 
-        for (var x = 0; x < board.Width; x++) {
-            for (var y = 0; y < board.Height; y++) {
-                if (x == board.Food.X && y == board.Food.Y) {
-                    continue;
-                }
-                var found = false;
-                for (var i = 0; i < board.Empty.length; i++) {
-                    var emptyPoint = board.Empty[i];
-                    if (x == emptyPoint.X && y == emptyPoint.Y) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    snake(x, y);
-                }
-            }
+        for (var i = board.SnakeBody.length - 1; i >= 0; i--) {
+            var body = board.SnakeBody[i];
+            snakeList.push({x: body.X, y: body.Y})
         }
 
+        snake(snakeList);
     }
 
     function httpGet(url, callback) {
@@ -96,29 +121,30 @@ document.onreadystatechange = function () {
     var right = document.getElementById('right');
     var forward = document.getElementById('forward');
     var reset = document.getElementById('reset');
+    var rewind = document.getElementById('rewind');
+
+    function drawCallback(text) {
+        draw(JSON.parse(text));
+    }
 
     left.onclick = function() {
-        httpGet('snake/move/left', function(text) {
-            draw(JSON.parse(text));
-        });
+        httpGet('snake/move/left', drawCallback);
     };
 
     right.onclick = function() {
-        httpGet('snake/move/right', function(text) {
-            draw(JSON.parse(text));
-        });
+        httpGet('snake/move/right', drawCallback);
     };
 
     forward.onclick = function() {
-        httpGet('snake/move/forward', function(text) {
-            draw(JSON.parse(text));
-        });
+        httpGet('snake/move/forward', drawCallback);
     };
 
     reset.onclick = function() {
-        httpGet('snake/reset', function(text) {
-            draw(JSON.parse(text));
-        });
+        httpGet('snake/reset', drawCallback);
+    };
+
+    rewind.onclick = function() {
+        httpGet('snake/rewind', drawCallback);
     };
 
     reset.onclick();
